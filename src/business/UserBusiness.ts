@@ -1,9 +1,15 @@
-import { CustomError, InvalidName, InvalidEmail, InvalidRole } from './../error/BaseError';
 import { UserInputDTO, LoginInputDTO, UserRole, User } from "../model/User";
 import { UserDatabase } from "../data/UserDatabase";
 import { IdGenerator } from "../services/IdGenerator";
 import { HashManager } from "../services/HashManager";
 import { Authenticator } from "../services/Authenticator";
+import { 
+  CustomError, 
+  InvalidName, 
+  InvalidEmail, 
+  InvalidRole, 
+  UserNotFound, 
+  EmailNotFound } from './../error/BaseError';
 
 const idGenerator = new IdGenerator();
 const authenticator = new Authenticator();
@@ -50,13 +56,32 @@ export class UserBusiness {
     }
   }
   
-  async getUserByEmail(user: LoginInputDTO) {
+  async loginUser({email, password}: LoginInputDTO) {
+
+    if(!email || !password){
+      throw new CustomError(
+        400,
+        'Preencha os campos "email" e "password"'
+      );
+    }
+
+    if(!email.includes('@')){
+      throw new InvalidEmail();
+    }
 
     const userDatabase = new UserDatabase();
-    const userFromDB = await userDatabase.getUserByEmail(user.email);
+    const userFromDB = await userDatabase.loginUser(email);
+
+    if(!userFromDB){
+      throw new UserNotFound();
+    }
+
+    if(email !== userFromDB.getEmail()){
+      throw new EmailNotFound();
+    }
 
     const hashManager = new HashManager();
-    const hashCompare = await hashManager.compare(user.password, userFromDB.getPassword());
+    const hashCompare = await hashManager.compare(password, userFromDB.getPassword());
 
     const authenticator = new Authenticator();
     const accessToken = authenticator.generateToken({ id: userFromDB.getId(), role: userFromDB.getRole() });

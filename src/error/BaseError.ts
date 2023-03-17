@@ -41,6 +41,12 @@ export class UserNotFound extends CustomError{
     }
 }
 
+export class EmailNotFound extends CustomError{ 
+    constructor(){
+        super(404, "Email não encontrado")
+    }
+}
+
 export class Unauthorized extends CustomError{ 
     constructor(){
         super(401, "Usuário não autorizado")

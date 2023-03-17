@@ -30,21 +30,20 @@ export class UserController {
 
         try {
 
-            const loginData: LoginInputDTO = {
+            const login: LoginInputDTO = {
                 email: req.body.email,
                 password: req.body.password
-            };
+            }
 
             const userBusiness = new UserBusiness();
-            const token = await userBusiness.getUserByEmail(loginData);
+            const token = await userBusiness.loginUser(login);
 
-            res.status(200).send({ token });
-
+            res.status(200).send({token});
+            
         } catch (error) {
             res.status(400).send({ error: error.message });
         }
-
+        
         await BaseDatabase.destroyConnection();
     }
-
 }
